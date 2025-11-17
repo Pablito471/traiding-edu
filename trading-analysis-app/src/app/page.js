@@ -1,23 +1,21 @@
+// src/app/page.js
 "use client";
 
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import TradingChart from "@/components/charts/TradingChart";
-import AnalysisResult from "@/components/analysis/AnalysisResult";
 import PatternAnalysis from "@/components/analysis/PatternAnalysis";
 import TechnicalIndicators from "@/components/analysis/TechnicalIndicators";
 import JapaneseCandles from "@/components/educational/JapaneseCandles";
 import TradingStrategies from "@/components/educational/TradingStrategies";
 import RiskManagement from "@/components/educational/RiskManagement";
 import TabNavigation from "@/components/ui/TabNavigation";
-import { useTechnicalAnalysis } from "@/hooks/useTechnicalAnalysis";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("analysis");
-  const { analysis, clearAnalysis } = useTechnicalAnalysis();
 
   const tabs = [
-    { id: "analysis", label: "Análisis de Gráfico" },
+    { id: "analysis", label: "Análisis en Tiempo Real" },
     { id: "patterns", label: "Patrones Chartistas" },
     { id: "indicators", label: "Indicadores" },
     { id: "candles", label: "Velas Japonesas" },
@@ -28,14 +26,7 @@ export default function Home() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "analysis":
-        return (
-          <div className="space-y-6">
-            <TradingChart />
-            {analysis && (
-              <AnalysisResult analysis={analysis} onClear={clearAnalysis} />
-            )}
-          </div>
-        );
+        return <TradingChart />;
       case "patterns":
         return <PatternAnalysis />;
       case "indicators":
@@ -47,14 +38,7 @@ export default function Home() {
       case "risk":
         return <RiskManagement />;
       default:
-        return (
-          <div className="space-y-6">
-            <TradingChart />
-            {analysis && (
-              <AnalysisResult analysis={analysis} onClear={clearAnalysis} />
-            )}
-          </div>
-        );
+        return <TradingChart />;
     }
   };
 
@@ -65,12 +49,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Análisis Profesional de Trading
+              Plataforma Profesional de Trading
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Plataforma avanzada de análisis técnico con reconocimiento de
-              patrones por IA, recursos educativos completos y herramientas
-              profesionales de trading.
+              Análisis técnico avanzado con gráficos profesionales en tiempo
+              real, reconocimiento de patrones por IA y herramientas educativas
+              completas.
             </p>
           </div>
         </div>

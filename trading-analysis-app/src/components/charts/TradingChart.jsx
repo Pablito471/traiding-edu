@@ -1,53 +1,71 @@
+// src/components/charts/TradingChart.jsx
 "use client";
 
 import { useState, useCallback } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceArea,
-} from "recharts";
-import { useChartData } from "@/hooks/useChartData";
+import TradingViewChart from "./TradingViewChart";
 import { useTechnicalAnalysis } from "@/hooks/useTechnicalAnalysis";
 import ChartControls from "./ChartControls";
-import VolumeChart from "./VolumeChart";
-import LoadingSpinner from "../ui/LoadingSpinner";
-import Card from "../ui/Card";
+import AnalysisResult from "../analysis/AnalysisResult";
 
 const TradingChart = () => {
   const [timeframe, setTimeframe] = useState("1h");
+  const [symbol, setSymbol] = useState("BTCUSDT");
   const [selectedArea, setSelectedArea] = useState(null);
 
-  const { data, loading } = useChartData(timeframe);
   const { analysis, analyzing, analyzeData, clearAnalysis } =
     useTechnicalAnalysis();
 
-  const handleChartClick = useCallback(
-    (clickData) => {
-      if (!clickData || !clickData.activePayload) return;
+  const handleAreaSelect = useCallback(
+    async (startTime, endTime) => {
+      setSelectedArea({ start: startTime, end: endTime });
 
-      const index = clickData.activePayload[0]?.payload?.index;
+      // Simular datos seleccionados para análisis
+      const mockSelectedData = [
+        {
+          time: startTime,
+          open: 45000,
+          high: 45500,
+          low: 44800,
+          close: 45200,
+          volume: 1000,
+        },
+        {
+          time: startTime + 3600,
+          open: 45200,
+          high: 45800,
+          low: 45000,
+          close: 45600,
+          volume: 1200,
+        },
+        {
+          time: startTime + 7200,
+          open: 45600,
+          high: 46000,
+          low: 45400,
+          close: 45800,
+          volume: 900,
+        },
+        {
+          time: startTime + 10800,
+          open: 45800,
+          high: 46200,
+          low: 45600,
+          close: 46000,
+          volume: 1100,
+        },
+        {
+          time: endTime,
+          open: 46000,
+          high: 46500,
+          low: 45800,
+          close: 46300,
+          volume: 1300,
+        },
+      ].map((item, index) => ({ ...item, index }));
 
-      if (
-        selectedArea &&
-        selectedArea.start !== null &&
-        selectedArea.end === null
-      ) {
-        const start = Math.min(selectedArea.start, index);
-        const end = Math.max(selectedArea.start, index);
-        setSelectedArea({ start, end });
-        analyzeData(data.slice(start, end + 1));
-      } else {
-        setSelectedArea({ start: index, end: null });
-        clearAnalysis();
-      }
+      await analyzeData(mockSelectedData);
     },
-    [selectedArea, data, analyzeData, clearAnalysis]
+    [analyzeData]
   );
 
   const handleClearSelection = () => {
@@ -55,88 +73,38 @@ const TradingChart = () => {
     clearAnalysis();
   };
 
-  if (loading) {
-    return (
-      <Card className="flex items-center justify-center h-96">
-        <LoadingSpinner size="large" />
-        <span className="ml-3 text-gray-600">
-          Cargando datos del gráfico...
-        </span>
-      </Card>
-    );
-  }
+  const handleTimeframeChange = (newTimeframe) => {
+    setTimeframe(newTimeframe);
+    handleClearSelection();
+  };
+
+  const handleSymbolChange = (newSymbol) => {
+    setSymbol(newSymbol);
+    handleClearSelection();
+  };
 
   return (
-    <Card className="overflow-hidden" padding="none">
-      <ChartControls
+    <div className="space-y-6">
+      <TradingViewChart
+        symbol={symbol}
         timeframe={timeframe}
-        onTimeframeChange={setTimeframe}
-        onClearSelection={handleClearSelection}
-        hasSelection={!!selectedArea}
+        onAreaSelect={handleAreaSelect}
+        selectedArea={selectedArea}
       />
 
-      <div className="relative p-4">
-        <div className="h-96 mb-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} onClick={handleChartClick}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} tickLine={false} />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                tickLine={false}
-                domain={["auto", "auto"]}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="close"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={false}
-                name="Precio"
-              />
-
-              {selectedArea && selectedArea.end !== null && (
-                <ReferenceArea
-                  x1={data[selectedArea.start]?.time}
-                  x2={data[selectedArea.end]?.time}
-                  stroke="rgba(59, 130, 246, 0.3)"
-                  fill="rgba(59, 130, 246, 0.1)"
-                />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
-
-          {analyzing && (
-            <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center rounded-lg">
-              <div className="text-center">
-                <LoadingSpinner size="large" />
-                <p className="mt-2 text-gray-600 font-medium">
-                  Analizando patrón...
-                </p>
-              </div>
-            </div>
-          )}
+      {analyzing && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+          <div className="flex items-center justify-center space-x-3">
+            <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-gray-700">Analizando patrón con IA...</span>
+          </div>
         </div>
+      )}
 
-        <VolumeChart data={data} />
-      </div>
-
-      <div className="p-4 bg-gray-50 border-t border-gray-200">
-        <p className="text-sm text-gray-600 text-center">
-          Haz clic en dos puntos del gráfico para seleccionar un área y
-          analizarla con IA
-        </p>
-      </div>
-    </Card>
+      {analysis && (
+        <AnalysisResult analysis={analysis} onClear={handleClearSelection} />
+      )}
+    </div>
   );
 };
 
